@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -112,7 +111,7 @@ func (s *StubPlayerStore) GetPlayerScore(name string) int {
 	return score
 }
 
-func (s *StubPlayerStore) GetLeague() []Player {
+func (s *StubPlayerStore) GetLeague() League {
 	return s.league
 }
 
@@ -163,7 +162,7 @@ func assertContentType(t testing.TB, response *httptest.ResponseRecorder, want s
 }
 
 func getLeagueFromResponse(t testing.TB, body io.Reader) (league []Player) {
-	err := json.NewDecoder(body).Decode(&league)
+	league, err := NewLeague(body)
 
 	if err != nil {
 		t.Fatalf("Unable to parse response %q into slice Player, %v", body, err)
