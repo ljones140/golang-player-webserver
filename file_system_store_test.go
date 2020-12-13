@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -14,7 +13,7 @@ func TestFilesSystemStore(t *testing.T) {
       {"Name": "Chris", "Wins": 33}]`)
 		defer cleanDatabase()
 
-		store := NewFileSystemPlayerStore(database)
+		store, err := NewFileSystemPlayerStore(database)
 
 		got := store.GetLeague()
 
@@ -22,6 +21,8 @@ func TestFilesSystemStore(t *testing.T) {
 			{"Cleo", 10},
 			{"Chris", 33},
 		}
+
+		assertNoError(t, err)
 
 		assertLeague(t, got, want)
 
@@ -36,11 +37,14 @@ func TestFilesSystemStore(t *testing.T) {
       {"Name": "Chris", "Wins": 33}]`)
 		defer cleanDatabase()
 
-		store := NewFileSystemPlayerStore(database)
+		store, err := NewFileSystemPlayerStore(database)
 
 		got := store.GetPlayerScore("Chris")
 
 		want := 33
+
+		assertNoError(t, err)
+
 		assertScoreEquals(t, got, want)
 	})
 
@@ -50,7 +54,8 @@ func TestFilesSystemStore(t *testing.T) {
       {"Name": "Chris", "Wins": 33}]`)
 		defer cleanDatabase()
 
-		store := NewFileSystemPlayerStore(database)
+		store, err := NewFileSystemPlayerStore(database)
+		assertNoError(t, err)
 
 		store.RecordWin("Chris")
 
@@ -65,7 +70,8 @@ func TestFilesSystemStore(t *testing.T) {
       {"Name": "Chris", "Wins": 33}]`)
 		defer cleanDatabase()
 
-		store := NewFileSystemPlayerStore(database)
+		store, err := NewFileSystemPlayerStore(database)
+		assertNoError(t, err)
 
 		store.RecordWin("Pepper")
 
@@ -73,6 +79,16 @@ func TestFilesSystemStore(t *testing.T) {
 		want := 1
 		assertScoreEquals(t, got, want)
 	})
+
+	t.Run("works with an empty file", func(t *testing.T) {
+		database, cleanDatabase := createTempFile(t, "")
+		defer cleanDatabase()
+
+		_, err := NewFileSystemPlayerStore(database)
+
+		assertNoError(t, err)
+	})
+
 }
 
 func assertScoreEquals(t testing.TB, got, want int) {
@@ -82,7 +98,7 @@ func assertScoreEquals(t testing.TB, got, want int) {
 	}
 }
 
-func createTempFile(t *testing.T, initialData string) (io.ReadWriteSeeker, func()) {
+func createTempFile(t *testing.T, initialData string) (*os.File, func()) {
 	t.Helper()
 
 	tmpfile, err := ioutil.TempFile("", "db")
