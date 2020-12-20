@@ -22,13 +22,13 @@ func TestFilesSystemStore(t *testing.T) {
 			{"Cleo", 10},
 		}
 
-		assertNoError(t, err)
+		AssertNoError(t, err)
 
-		assertLeague(t, got, want)
+		AssertLeague(t, got, want)
 
 		// read again
 		got = store.GetLeague()
-		assertLeague(t, got, want)
+		AssertLeague(t, got, want)
 	})
 
 	t.Run("get player score", func(t *testing.T) {
@@ -43,7 +43,7 @@ func TestFilesSystemStore(t *testing.T) {
 
 		want := 33
 
-		assertNoError(t, err)
+		AssertNoError(t, err)
 
 		assertScoreEquals(t, got, want)
 	})
@@ -55,7 +55,7 @@ func TestFilesSystemStore(t *testing.T) {
 		defer cleanDatabase()
 
 		store, err := NewFileSystemPlayerStore(database)
-		assertNoError(t, err)
+		AssertNoError(t, err)
 
 		store.RecordWin("Chris")
 
@@ -71,7 +71,7 @@ func TestFilesSystemStore(t *testing.T) {
 		defer cleanDatabase()
 
 		store, err := NewFileSystemPlayerStore(database)
-		assertNoError(t, err)
+		AssertNoError(t, err)
 
 		store.RecordWin("Pepper")
 
@@ -86,7 +86,7 @@ func TestFilesSystemStore(t *testing.T) {
 
 		_, err := NewFileSystemPlayerStore(database)
 
-		assertNoError(t, err)
+		AssertNoError(t, err)
 	})
 
 	t.Run("sorts league", func(t *testing.T) {
@@ -96,7 +96,7 @@ func TestFilesSystemStore(t *testing.T) {
 		defer cleanDatabase()
 
 		store, err := NewFileSystemPlayerStore(database)
-		assertNoError(t, err)
+		AssertNoError(t, err)
 
 		got := store.GetLeague()
 
@@ -105,10 +105,10 @@ func TestFilesSystemStore(t *testing.T) {
 			{"Cleo", 10},
 		}
 
-		assertLeague(t, got, want)
+		AssertLeague(t, got, want)
 		// read again
 		got = store.GetLeague()
-		assertLeague(t, got, want)
+		AssertLeague(t, got, want)
 	})
 
 }
