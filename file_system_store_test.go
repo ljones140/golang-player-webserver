@@ -1,9 +1,11 @@
-package poker
+package poker_test
 
 import (
 	"io/ioutil"
 	"os"
 	"testing"
+
+	poker "github.com/ljones140/golang-player-webserver"
 )
 
 func TestFilesSystemStore(t *testing.T) {
@@ -13,22 +15,22 @@ func TestFilesSystemStore(t *testing.T) {
       {"Name": "Chris", "Wins": 33}]`)
 		defer cleanDatabase()
 
-		store, err := NewFileSystemPlayerStore(database)
+		store, err := poker.NewFileSystemPlayerStore(database)
 
 		got := store.GetLeague()
 
-		want := []Player{
+		want := []poker.Player{
 			{"Chris", 33},
 			{"Cleo", 10},
 		}
 
-		AssertNoError(t, err)
+		poker.AssertNoError(t, err)
 
-		AssertLeague(t, got, want)
+		poker.AssertLeague(t, got, want)
 
 		// read again
 		got = store.GetLeague()
-		AssertLeague(t, got, want)
+		poker.AssertLeague(t, got, want)
 	})
 
 	t.Run("get player score", func(t *testing.T) {
@@ -37,13 +39,13 @@ func TestFilesSystemStore(t *testing.T) {
       {"Name": "Chris", "Wins": 33}]`)
 		defer cleanDatabase()
 
-		store, err := NewFileSystemPlayerStore(database)
+		store, err := poker.NewFileSystemPlayerStore(database)
 
 		got := store.GetPlayerScore("Chris")
 
 		want := 33
 
-		AssertNoError(t, err)
+		poker.AssertNoError(t, err)
 
 		assertScoreEquals(t, got, want)
 	})
@@ -54,8 +56,8 @@ func TestFilesSystemStore(t *testing.T) {
       {"Name": "Chris", "Wins": 33}]`)
 		defer cleanDatabase()
 
-		store, err := NewFileSystemPlayerStore(database)
-		AssertNoError(t, err)
+		store, err := poker.NewFileSystemPlayerStore(database)
+		poker.AssertNoError(t, err)
 
 		store.RecordWin("Chris")
 
@@ -70,8 +72,8 @@ func TestFilesSystemStore(t *testing.T) {
       {"Name": "Chris", "Wins": 33}]`)
 		defer cleanDatabase()
 
-		store, err := NewFileSystemPlayerStore(database)
-		AssertNoError(t, err)
+		store, err := poker.NewFileSystemPlayerStore(database)
+		poker.AssertNoError(t, err)
 
 		store.RecordWin("Pepper")
 
@@ -84,9 +86,9 @@ func TestFilesSystemStore(t *testing.T) {
 		database, cleanDatabase := createTempFile(t, "")
 		defer cleanDatabase()
 
-		_, err := NewFileSystemPlayerStore(database)
+		_, err := poker.NewFileSystemPlayerStore(database)
 
-		AssertNoError(t, err)
+		poker.AssertNoError(t, err)
 	})
 
 	t.Run("sorts league", func(t *testing.T) {
@@ -95,20 +97,20 @@ func TestFilesSystemStore(t *testing.T) {
       {"Name": "Chris", "Wins": 33}]`)
 		defer cleanDatabase()
 
-		store, err := NewFileSystemPlayerStore(database)
-		AssertNoError(t, err)
+		store, err := poker.NewFileSystemPlayerStore(database)
+		poker.AssertNoError(t, err)
 
 		got := store.GetLeague()
 
-		want := []Player{
+		want := []poker.Player{
 			{"Chris", 33},
 			{"Cleo", 10},
 		}
 
-		AssertLeague(t, got, want)
+		poker.AssertLeague(t, got, want)
 		// read again
 		got = store.GetLeague()
-		AssertLeague(t, got, want)
+		poker.AssertLeague(t, got, want)
 	})
 
 }

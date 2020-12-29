@@ -1,4 +1,4 @@
-package poker
+package poker_test
 
 import (
 	"net/http"
@@ -8,41 +8,41 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+
+	poker "github.com/ljones140/golang-player-webserver"
 )
 
 func TestGETPlayers(t *testing.T) {
-	store := StubPlayerStore{
-		map[string]int{
+	store := poker.StubPlayerStore{
+		Scores: map[string]int{
 			"Pepper": 20,
 			"Floyd":  10,
 		},
-		nil,
-		nil,
 	}
 
-	server := mustMakePlayerServer(t, &store)
+	server := mustMakePlayerServer(t, &store, dummyGame)
 
 	t.Run("returns Pepper's score", func(t *testing.T) {
-		request := NewGetScoreRequest("Pepper")
+		request := poker.NewGetScoreRequest("Pepper")
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
 
-		AssertResponseBody(t, response.Body.String(), "20")
+		poker.AssertResponseBody(t, response.Body.String(), "20")
 		assertStatus(t, response, http.StatusOK)
 	})
 
 	t.Run("returns Floyd's score", func(t *testing.T) {
-		request := NewGetScoreRequest("Floyd")
+		request := poker.NewGetScoreRequest("Floyd")
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
 
-		AssertResponseBody(t, response.Body.String(), "10")
+		poker.AssertResponseBody(t, response.Body.String(), "10")
 		assertStatus(t, response, http.StatusOK)
 	})
 	t.Run("returns 404 when player does not exist", func(t *testing.T) {
-		request := NewGetScoreRequest("NonExistantPlayer")
+		request := poker.NewGetScoreRequest("NonExistantPlayer")
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
@@ -54,57 +54,56 @@ func TestGETPlayers(t *testing.T) {
 func TestLeague(t *testing.T) {
 
 	t.Run("it returns the league table as JSON", func(t *testing.T) {
-		wantedLeague := []Player{
+		wantedLeague := []poker.Player{
 			{"Cleo", 32},
 			{"Cleo", 20},
 			{"Cleo", 14},
 		}
 
-		store := StubPlayerStore{nil, nil, wantedLeague}
-		server := mustMakePlayerServer(t, &store)
+		store := poker.StubPlayerStore{nil, nil, wantedLeague}
+		server := mustMakePlayerServer(t, &store, dummyGame)
 
-		request := NewGetLeagueRequest()
+		request := poker.NewGetLeagueRequest()
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
-		got := GetLeagueFromResponse(t, response.Body)
+		got := poker.GetLeagueFromResponse(t, response.Body)
 
-		AssertLeague(t, got, wantedLeague)
+		poker.AssertLeague(t, got, wantedLeague)
 		assertStatus(t, response, http.StatusOK)
-		AssertContentType(t, response, jsonContentType)
+		poker.AssertContentType(t, response, "application/json")
 	})
 }
 
 func TestStoreWins(t *testing.T) {
-	store := StubPlayerStore{
-		map[string]int{},
-		nil,
-		nil,
+	store := poker.StubPlayerStore{
+		Scores: map[string]int{},
 	}
 
-	server := mustMakePlayerServer(t, &store)
+	server := mustMakePlayerServer(t, &store, dummyGame)
 
 	t.Run("it records win when POST", func(t *testing.T) {
 		player := "Pepper"
-		request := NewPostWinRequest(player)
+		request := poker.NewPostWinRequest(player)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
 		assertStatus(t, response, http.StatusAccepted)
 
-		if len(store.winCalls) != 1 {
-			t.Errorf("got %d calls to RecordWin want %d", len(store.winCalls), 1)
+		//TODO: use helper here
+		if len(store.WinCalls) != 1 {
+			t.Errorf("got %d calls to RecordWin want %d", len(store.WinCalls), 1)
 		}
 
-		if store.winCalls[0] != player {
-			t.Errorf("did not store correct winner go %q want %q", store.winCalls[0], player)
+		if store.WinCalls[0] != player {
+			t.Errorf("did not store correct winner go %q want %q", store.WinCalls[0], player)
 		}
 	})
 }
 
 func TestGame(t *testing.T) {
 	t.Run("GET /game returns a 200", func(t *testing.T) {
-		server := mustMakePlayerServer(t, &StubPlayerStore{})
-		request := NewGameRequest()
+		server := mustMakePlayerServer(t, &poker.StubPlayerStore{}, dummyGame)
+		request := poker.NewGameRequest()
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
