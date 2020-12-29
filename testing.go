@@ -61,17 +61,15 @@ func NewPostWinRequest(name string) *http.Request {
 	return request
 }
 
+func NewGameRequest() *http.Request {
+	request, _ := http.NewRequest(http.MethodGet, "/game", nil)
+	return request
+}
+
 func AssertResponseBody(t testing.TB, got, want string) {
 	t.Helper()
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
-	}
-}
-
-func assertStatus(t testing.TB, got, want int) {
-	t.Helper()
-	if got != want {
-		t.Errorf("did not get correct status, got %d want %d", got, want)
 	}
 }
 
