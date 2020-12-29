@@ -13,7 +13,7 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 	defer cleanDatabase()
 	store, _ := poker.NewFileSystemPlayerStore(database)
 
-	server := mustMakePlayerServer(t, store)
+	server := mustMakePlayerServer(t, store, dummyGame)
 	player := "Pepper"
 
 	server.ServeHTTP(httptest.NewRecorder(), poker.NewPostWinRequest(player))

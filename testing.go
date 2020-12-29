@@ -10,6 +10,23 @@ import (
 	"time"
 )
 
+type GameSpy struct {
+	StartedWith  int
+	FinishedWith string
+	StartCalled  bool
+	FinishCalled bool
+}
+
+func (g *GameSpy) Start(numberOfPlayers int, alertsDestination io.Writer) {
+	g.StartedWith = numberOfPlayers
+	g.StartCalled = true
+}
+
+func (g *GameSpy) Finish(winner string) {
+	g.FinishedWith = winner
+	g.FinishCalled = true
+}
+
 type StubPlayerStore struct {
 	Scores   map[string]int
 	WinCalls []string
