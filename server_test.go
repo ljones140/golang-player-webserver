@@ -25,7 +25,7 @@ func TestGETPlayers(t *testing.T) {
 		server.ServeHTTP(response, request)
 
 		AssertResponseBody(t, response.Body.String(), "20")
-		AssertStatus(t, response.Code, http.StatusOK)
+		assertStatus(t, response.Code, http.StatusOK)
 	})
 
 	t.Run("returns Floyd's score", func(t *testing.T) {
@@ -35,7 +35,7 @@ func TestGETPlayers(t *testing.T) {
 		server.ServeHTTP(response, request)
 
 		AssertResponseBody(t, response.Body.String(), "10")
-		AssertStatus(t, response.Code, http.StatusOK)
+		assertStatus(t, response.Code, http.StatusOK)
 	})
 	t.Run("returns 404 when player does not exist", func(t *testing.T) {
 		request := NewGetScoreRequest("NonExistantPlayer")
@@ -43,7 +43,7 @@ func TestGETPlayers(t *testing.T) {
 
 		server.ServeHTTP(response, request)
 
-		AssertStatus(t, response.Code, http.StatusNotFound)
+		assertStatus(t, response.Code, http.StatusNotFound)
 	})
 }
 
@@ -65,7 +65,7 @@ func TestLeague(t *testing.T) {
 		got := GetLeagueFromResponse(t, response.Body)
 
 		AssertLeague(t, got, wantedLeague)
-		AssertStatus(t, response.Code, http.StatusOK)
+		assertStatus(t, response.Code, http.StatusOK)
 		AssertContentType(t, response, jsonContentType)
 	})
 }
@@ -85,7 +85,7 @@ func TestStoreWins(t *testing.T) {
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
-		AssertStatus(t, response.Code, http.StatusAccepted)
+		assertStatus(t, response.Code, http.StatusAccepted)
 
 		if len(store.winCalls) != 1 {
 			t.Errorf("got %d calls to RecordWin want %d", len(store.winCalls), 1)
@@ -95,4 +95,11 @@ func TestStoreWins(t *testing.T) {
 			t.Errorf("did not store correct winner go %q want %q", store.winCalls[0], player)
 		}
 	})
+}
+
+func assertStatus(t testing.TB, got, want int) {
+	t.Helper()
+	if got != want {
+		t.Errorf("did not get correct status, got %d want %d", got, want)
+	}
 }
