@@ -97,6 +97,18 @@ func TestStoreWins(t *testing.T) {
 	})
 }
 
+func TestGame(t *testing.T) {
+	t.Run("GET /game returns a 200", func(t *testing.T) {
+		server := NewPlayerServer(&StubPlayerStore{})
+		request := NewGameRequest()
+		response := httptest.NewRecorder()
+
+		server.ServeHTTP(response, request)
+		assertStatus(t, response, http.StatusOK)
+
+	})
+}
+
 func assertStatus(t testing.TB, response *httptest.ResponseRecorder, want int) {
 	t.Helper()
 	got := response.Code
