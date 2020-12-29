@@ -20,7 +20,7 @@ func TestGETPlayers(t *testing.T) {
 		nil,
 	}
 
-	server := NewPlayerServer(&store)
+	server := mustMakePlayerServer(t, &store)
 
 	t.Run("returns Pepper's score", func(t *testing.T) {
 		request := NewGetScoreRequest("Pepper")
@@ -61,7 +61,7 @@ func TestLeague(t *testing.T) {
 		}
 
 		store := StubPlayerStore{nil, nil, wantedLeague}
-		server := NewPlayerServer(&store)
+		server := mustMakePlayerServer(t, &store)
 
 		request := NewGetLeagueRequest()
 		response := httptest.NewRecorder()
@@ -81,7 +81,7 @@ func TestStoreWins(t *testing.T) {
 		nil,
 	}
 
-	server := NewPlayerServer(&store)
+	server := mustMakePlayerServer(t, &store)
 
 	t.Run("it records win when POST", func(t *testing.T) {
 		player := "Pepper"
@@ -103,7 +103,7 @@ func TestStoreWins(t *testing.T) {
 
 func TestGame(t *testing.T) {
 	t.Run("GET /game returns a 200", func(t *testing.T) {
-		server := NewPlayerServer(&StubPlayerStore{})
+		server := mustMakePlayerServer(t, &StubPlayerStore{})
 		request := NewGameRequest()
 		response := httptest.NewRecorder()
 
@@ -115,7 +115,8 @@ func TestGame(t *testing.T) {
 	t.Run("when we aget a message over a websocket it is a winner of a game", func(t *testing.T) {
 		store := &StubPlayerStore{}
 		winner := "Ruth"
-		server := httptest.NewServer(NewPlayerServer(store))
+
+		server := httptest.NewServer(mustMakePlayerServer(t, store))
 		defer server.Close()
 
 		wsURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws"
@@ -142,4 +143,13 @@ func assertStatus(t testing.TB, response *httptest.ResponseRecorder, want int) {
 	if got != want {
 		t.Errorf("did not get correct status, got %d want %d", got, want)
 	}
+}
+
+func mustMakePlayerServer(t *testing.T, store PlayerStore) *PlayerServer {
+	server, err := NewPlayerServer(store)
+	if err != nil {
+		t.Fatal("problem creating player server", err)
+	}
+
+	return server
 }
