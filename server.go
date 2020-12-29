@@ -44,7 +44,7 @@ func NewPlayerServer(store PlayerStore) (*PlayerServer, error) {
 	router := http.NewServeMux()
 	router.Handle("/league", http.HandlerFunc(p.leagueHander))
 	router.Handle("/players/", http.HandlerFunc(p.playersHandler))
-	router.Handle("/game", http.HandlerFunc(p.game))
+	router.Handle("/game", http.HandlerFunc(p.playGame))
 	router.Handle("/ws", http.HandlerFunc(p.websocket))
 
 	p.Handler = router
@@ -67,7 +67,7 @@ func (p *PlayerServer) playersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *PlayerServer) game(w http.ResponseWriter, r *http.Request) {
+func (p *PlayerServer) playGame(w http.ResponseWriter, r *http.Request) {
 	p.template.Execute(w, nil)
 }
 
