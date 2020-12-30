@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -82,13 +81,13 @@ var upgrader = websocket.Upgrader{
 }
 
 func (p *PlayerServer) websocket(w http.ResponseWriter, r *http.Request) {
-	websocket := newPlayerServerWS(w, r)
+	ws := newPlayerServerWS(w, r)
 
-	numberOfPlayersMsg := websocket.WaitForMsg()
+	numberOfPlayersMsg := ws.WaitForMsg()
 	numberOfPlayers, _ := strconv.Atoi(numberOfPlayersMsg)
-	p.game.Start(numberOfPlayers, ioutil.Discard) //TODO: don't discard blinds message
+	p.game.Start(numberOfPlayers, ws)
 
-	winner := websocket.WaitForMsg()
+	winner := ws.WaitForMsg()
 	p.game.Finish(winner)
 }
 

@@ -12,6 +12,11 @@ import (
 	poker "github.com/ljones140/golang-player-webserver"
 )
 
+var (
+	dummyGame = &poker.GameSpy{}
+	tenMS     = 10 * time.Millisecond
+)
+
 func TestGETPlayers(t *testing.T) {
 	store := poker.StubPlayerStore{
 		Scores: map[string]int{
@@ -111,9 +116,11 @@ func TestGame(t *testing.T) {
 
 	})
 
-	t.Run("when we aget a message over a websocket it is a winner of a game", func(t *testing.T) {
-		game := &poker.GameSpy{}
+	t.Run("starts a game with given no of players, sends blind alerts via websocket and declares winner", func(t *testing.T) {
+		wantedBlindAlert := "Blind is 100"
 		winner := "Ruth"
+
+		game := &poker.GameSpy{BlindAlert: []byte(wantedBlindAlert)}
 		server := httptest.NewServer(mustMakePlayerServer(t, dummyPlayerStore, game))
 		ws := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/ws")
 
@@ -126,6 +133,7 @@ func TestGame(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 		assertGameStartedWith(t, game, 3)
 		assertFinishCalledWith(t, game, winner)
+		within(t, tenMS, func() { assertWebsocketGotMsg(t, ws, wantedBlindAlert) })
 	})
 }
 
@@ -134,6 +142,13 @@ func assertStatus(t testing.TB, response *httptest.ResponseRecorder, want int) {
 	got := response.Code
 	if got != want {
 		t.Errorf("did not get correct status, got %d want %d", got, want)
+	}
+}
+
+func assertWebsocketGotMsg(t *testing.T, ws *websocket.Conn, want string) {
+	_, gotMessage, _ := ws.ReadMessage()
+	if string(gotMessage) != want {
+		t.Errorf("got blind alert %q, wanted blind alert %q", string(gotMessage), want)
 	}
 }
 
@@ -162,6 +177,19 @@ func writeWSMessage(t *testing.T, conn *websocket.Conn, message string) {
 	}
 }
 
-var (
-	dummyGame = &poker.GameSpy{}
-)
+func within(t testing.TB, d time.Duration, assert func()) {
+	t.Helper()
+
+	done := make(chan struct{}, 1)
+
+	go func() {
+		assert()
+		done <- struct{}{}
+	}()
+
+	select {
+	case <-time.After(d):
+		t.Error("timed out")
+	case <-done:
+	}
+}
