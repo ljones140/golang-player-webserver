@@ -82,14 +82,14 @@ var upgrader = websocket.Upgrader{
 }
 
 func (p *PlayerServer) websocket(w http.ResponseWriter, r *http.Request) {
-	conn, _ := upgrader.Upgrade(w, r, nil)
+	websocket := newPlayerServerWS(w, r)
 
-	_, numberOfPlayersMsg, _ := conn.ReadMessage()
-	numberOfPlayers, _ := strconv.Atoi(string(numberOfPlayersMsg))
+	numberOfPlayersMsg := websocket.WaitForMsg()
+	numberOfPlayers, _ := strconv.Atoi(numberOfPlayersMsg)
 	p.game.Start(numberOfPlayers, ioutil.Discard) //TODO: don't discard blinds message
 
-	_, winner, _ := conn.ReadMessage()
-	p.game.Finish(string(winner))
+	winner := websocket.WaitForMsg()
+	p.game.Finish(winner)
 }
 
 func (p *PlayerServer) showScore(w http.ResponseWriter, player string) {
