@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+	"time"
 
 	poker "github.com/ljones140/golang-player-webserver"
 )
@@ -54,16 +55,34 @@ func TestCLI(t *testing.T) {
 
 func assertGameStartedWith(t *testing.T, game *poker.GameSpy, numberOfPlayerswanted int) {
 	t.Helper()
-	if game.StartedWith != numberOfPlayerswanted {
+	passed := retryUntil(500*time.Millisecond, func() bool {
+		return game.StartedWith == numberOfPlayerswanted
+	})
+
+	if !passed {
 		t.Errorf("expected game to be started with %d, but got %d", game.StartedWith, numberOfPlayerswanted)
 	}
 }
 
-func assertFinishCalledWith(t *testing.T, game *poker.GameSpy, want string) {
+func assertFinishCalledWith(t *testing.T, game *poker.GameSpy, winner string) {
 	t.Helper()
-	if game.FinishedWith != want {
-		t.Errorf("expected game to be finished with %q, but got %q", game.FinishedWith, want)
+	passed := retryUntil(500*time.Millisecond, func() bool {
+		return game.FinishedWith == winner
+	})
+
+	if !passed {
+		t.Errorf("expected game to be finished with %q, but got %q", game.FinishedWith, winner)
 	}
+}
+
+func retryUntil(d time.Duration, f func() bool) bool {
+	deadline := time.Now().Add(d)
+	for time.Now().Before(deadline) {
+		if f() {
+			return true
+		}
+	}
+	return false
 }
 
 func assertGameNotStarted(t *testing.T, game *poker.GameSpy) {
